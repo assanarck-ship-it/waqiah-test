@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>സൂറത്തുൽ വാഖിഅഃ — ടെസ്റ്റ്</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans Malayalam', 'Meera', 'AnjaliOldLipi', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+  .container {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 640px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  h1 {
+    font-size: 1.3rem;
+    text-align: center;
+    color: #38bdf8;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #334155;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .question-counter {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .question-type {
+    font-size: 0.75rem;
+    color: #fbbf24;
+    text-align: center;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+  .question-text {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    color: #f1f5f9;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: #334155;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    color: #e2e8f0;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    line-height: 1.4;
+  }
+  .option-btn:hover { background: #475569; }
+  .option-btn.selected {
+    border-color: #38bdf8;
+    background: #0c4a6e;
+  }
+  .option-btn.correct {
+    border-color: #22c55e;
+    background: #14532d;
+  }
+  .option-btn.wrong {
+    border-color: #ef4444;
+    background: #7f1d1d;
+  }
+  .option-btn:disabled { cursor: default; }
+  .feedback {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback.correct { background: #14532d; color: #86efac; display: block; }
+  .feedback.wrong { background: #7f1d1d; color: #fca5a5; display: block; }
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .btn-next {
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    color: #0f172a;
+  }
+  .btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-next:hover:not(:disabled) { opacity: 0.9; }
+  .btn-restart {
+    background: #475569;
+    color: #e2e8f0;
+  }
+  .btn-restart:hover { background: #64748b; }
+  .result-screen { text-align: center; display: none; }
+  .result-screen.active { display: block; }
+  .score-big {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #38bdf8;
+    margin: 16px 0;
+  }
+  .score-label { font-size: 1rem; color: #94a3b8; }
+  .grade-text {
+    font-size: 1.1rem;
+    margin: 16px 0;
+    padding: 12px;
+    border-radius: 8px;
+    line-height: 1.5;
+  }
+  .grade-excellent { background: #14532d; color: #86efac; }
+  .grade-good { background: #1e3a5f; color: #7dd3fc; }
+  .grade-average { background: #713f12; color: #fde047; }
+  .grade-poor { background: #7f1d1d; color: #fca5a5; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>സൂറത്തുൽ വാഖിഅഃ</h1>
+  <p class="subtitle">സ്വയം പരിശോധനാ ടെസ്റ്റ് — 30 ചോദ്യങ്ങൾ (10 തരങ്ങൾ)</p>
+
+  <div id="quiz-screen">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <p class="question-counter" id="question-counter"></p>
+    <p class="question-type" id="question-type"></p>
+    <p class="question-text" id="question-text"></p>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="nav-buttons">
+      <button class="btn btn-next" id="next-btn" disabled>അടുത്തത് →</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="result-screen">
+    <h2>ടെസ്റ്റ് പൂർത്തിയായി!</h2>
+    <p class="score-label">നിങ്ങളുടെ സ്കോർ</p>
+    <p class="score-big" id="final-score"></p>
+    <div class="grade-text" id="grade-text"></div>
+    <button class="btn btn-restart" onclick="restartQuiz()">വീണ്ടും ചെയ്യുക</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // Type 1: Direct Factual Recall
+  { type: "Type 1: നേരിട്ടുള്ള വസ്തുത", q: "'ഇടതുപക്ഷക്കാർ' ഭക്ഷിക്കുന്ന വൃക്ഷത്തിന്റെ പേരെന്ത്?", options: ["സിദ്ർ", "തൽഹ്", "സഖ്ഖൂം", "നഖ്ല്"], answer: 2, explanation: "വാക്യം 52: സഖ്ഖൂം മരം (شَجَرٍ مِّن زَقُّومٍ)." },
+  { type: "Type 1: നേരിട്ടുള്ള വസ്തുത", q: "സൂറയുടെ തുടക്കത്തിൽ പർവതങ്ങൾക്ക് എന്ത് സംഭവിക്കും?", options: ["സ്വർണ്ണമായി മാറും", "വെള്ളമായി മാറും", "ചിതറിയ പൊടിയായി തകരും", "മാറ്റമില്ലാതെ തുടരും"], answer: 2, explanation: "വാക്യങ്ങൾ 5–6: പർവതങ്ങൾ തകർന്ന് ചിതറിയ പൊടിയാകും." },
+
+  // Type 2: Number-Based
+  { type: "Type 2: സംഖ്യാധിഷ്ഠിതം", q: "ഉയിർത്തെഴുന്നേൽപ്പിന്റെ ദിനത്തിൽ മനുഷ്യരെ എത്ര വിഭാഗങ്ങളായി തിരിക്കും?", options: ["രണ്ട്", "മൂന്ന്", "നാല്", "അഞ്ച്"], answer: 1, explanation: "വാക്യം 7: 'നിങ്ങൾ മൂന്ന് വിഭാഗമായിരിക്കും'." },
+  { type: "Type 2: സംഖ്യാധിഷ്ഠിതം", q: "സൂറത്തുൽ വാഖിഅഃയിൽ ആകെ എത്ര വാക്യങ്ങളുണ്ട്?", options: ["96", "99", "100", "110"], answer: 0, explanation: "ആകെ 96 വാക്യങ്ങൾ." },
+
+  // Type 3: Sequence & Order
+  { type: "Type 3: ക്രമം", q: "സൂറയിൽ ആദ്യം പരാമർശിക്കുന്ന വിഭാഗം ഏതാണ്?", options: ["വലതുപക്ഷക്കാർ", "ഇടതുപക്ഷക്കാർ", "മുൻഗാമികൾ", "നിഷേധികൾ"], answer: 2, explanation: "വാക്യങ്ങൾ 10–11: ആദ്യം മുൻഗാമികളെ പരാമർശിക്കുന്നു." },
+  { type: "Type 3: ക്രമം", q: "മുൻഗാമികളുടെ പ്രതിഫലത്തിന് ശേഷം ഏത് വിഭാഗത്തെയാണ് പരാമർശിക്കുന്നത്?", options: ["ഇടതുപക്ഷക്കാർ", "വലതുപക്ഷക്കാർ", "നിഷേധികൾ", "മാലാഖമാർ"], answer: 1, explanation: "വാക്യങ്ങൾ 27–40: വലതുപക്ഷക്കാരെ പരാമർശിക്കുന്നു." },
+
+  // Type 4: Opposite / Contrast
+  { type: "Type 4: വൈരുദ്ധ്യം", q: "വലതുപക്ഷക്കാർക്ക് 'വിശാലമായ തണൽ' ഉണ്ട്. ഇടതുപക്ഷക്കാർക്ക് എന്താണ്?", options: ["വിശാലമായ തണൽ", "കരിമ്പുകയുടെ തണൽ", "വൃക്ഷങ്ങളുടെ തണൽ", "പർവതങ്ങളുടെ തണൽ"], answer: 1, explanation: "വാക്യം 43: കരിമ്പുകയുടെ തണൽ (ظِلٍّ مِّن يَحْمُومٍ)." },
+  { type: "Type 4: വൈരുദ്ധ്യം", q: "മുൻഗാമികളുടെ പാനീയം തലവേദന ഉണ്ടാക്കുന്നില്ല. ഇടതുപക്ഷക്കാർ കുടിക്കുന്നത് എന്താണ്?", options: ["തണുത്ത വെള്ളം", "ചുട്ടുതിളക്കുന്ന വെള്ളം", "പാല്", "തേൻ"], answer: 1, explanation: "വാക്യം 54: ചുട്ടുതിളക്കുന്ന വെള്ളം (حَمِيمٍ)." },
+
+  // Type 5: Word-Meaning
+  { type: "Type 5: പദാർത്ഥം", q: "'ഹമീം' (حَمِيمٍ) എന്നതിന്റെ അർത്ഥം എന്താണ്?", options: ["തണുത്ത വെള്ളം", "ചുട്ടുതിളക്കുന്ന വെള്ളം", "പാല്", "തേൻ"], answer: 1, explanation: "ഹമീം = ചുട്ടുതിളക്കുന്ന വെള്ളം." },
+  { type: "Type 5: പദാർത്ഥം", q: "'അസ്-സാബിഖൂൻ' (السَّابِقُونَ) എന്നതിന്റെ അർത്ഥം എന്താണ്?", options: ["വലതുപക്ഷക്കാർ", "ഇടതുപക്ഷക്കാർ", "മുൻഗാമികൾ", "നിഷേധികൾ"], answer: 2, explanation: "അസ്-സാബിഖൂൻ = മുൻഗാമികൾ." },
+  { type: "Type 5: പദാർത്ഥം", q: "'സമൂം' (سَمُومٍ) എന്നതിന്റെ അർത്ഥം എന്താണ്?", options: ["ചുട്ടുതിളക്കുന്ന വെള്ളം", "കരിമ്പുക", "ചുട്ടുപൊള്ളുന്ന കാറ്റ്", "തണൽ"], answer: 2, explanation: "സമൂം = ചുട്ടുപൊള്ളുന്ന കാറ്റ്." },
+
+  // Type 6: Who / What Is Addressed
+  { type: "Type 6: ആരെയാണ് അഭിസംബോധന", q: "'قُلْ إِنَّ الْأَوَّلِينَ وَالْآخِرِينَ' — ആരോടാണ് ഇത് പറയാൻ കൽപ്പിക്കുന്നത്?", options: ["സത്യവിശ്വാസികൾ", "പ്രവാചകൻ ﷺ", "ഇടതുപക്ഷക്കാർ", "മാലാഖമാർ"], answer: 1, explanation: "'قُلْ' (പറയുക) — പ്രവാചകനോട് ﷺ." },
+  { type: "Type 6: ആരെയാണ് അഭിസംബോധന", q: "'هَٰذَا نُزُلُهُمْ' — 'അവരുടെ' എന്നത് ആരെയാണ് സൂചിപ്പിക്കുന്നത്?", options: ["മുൻഗാമികൾ", "വലതുപക്ഷക്കാർ", "ഇടതുപക്ഷക്കാർ", "പ്രവാചകന്മാർ"], answer: 2, explanation: "ഇടതുപക്ഷക്കാരെയാണ് സൂചിപ്പിക്കുന്നത്." },
+
+  // Type 7: Repetition & Rhetorical Device
+  { type: "Type 7: അലങ്കാരം", q: "'مَا أَصْحَابُ الْمَشْأَمَةِ' എന്നത് ഏത് തരത്തിലുള്ള പ്രയോഗമാണ്?", options: ["കൽപ്പന", "അലങ്കാര ചോദ്യം", "പ്രാർത്ഥന", "പഴഞ്ചൊല്ല്"], answer: 1, explanation: "ഇത് ഒരു അലങ്കാര ചോദ്യമാണ് (rhetorical question)." },
+  { type: "Type 7: അലങ്കാരം", q: "'فَشَارِبُونَ شُرْبَ الْهِيمِ' — ഇവിടെ ഏത് അലങ്കാരമാണ്?", options: ["ഉപമ", "രൂപകം", "അതിശയോക്തി", "വിരോധാഭാസം"], answer: 0, explanation: "ഒട്ടകങ്ങളെപ്പോലെ കുടിക്കുന്നു — ഉപമ (simile)." },
+
+  // Type 8: Cause & Effect
+  { type: "Type 8: കാരണ-ഫലം", q: "ഇടതുപക്ഷക്കാരുടെ ശിക്ഷയുടെ അടിസ്ഥാന കാരണം എന്താണ്?", options: ["അവർ ദരിദ്രരായിരുന്നു", "അവർ ആഡംബരത്തിൽ മുഴുകിയിരുന്നു", "അവർ അജ്ഞരായിരുന്നു", "അവർ യാത്രക്കാരായിരുന്നു"], answer: 1, explanation: "വാക്യം 45: സുഖലോലുപർ (مُتْرَفِينَ)." },
+  { type: "Type 8: കാരണ-ഫലം", q: "വാക്യം 46 പ്രകാരം അവർ എന്തിൽ തുടർന്നു?", options: ["മഹാപാപത്തിൽ", "മഹത്തായ തീയിൽ", "മഹത്തായ വൃക്ഷത്തിൽ", "മഹത്തായ കാറ്റിൽ"], answer: 0, explanation: "വാക്യം 46: മഹാപാപം (الْحِنثِ الْعَظِيمِ)." },
+
+  // Type 9: What Comes Next
+  { type: "Type 9: അടുത്തത് എന്ത്", q: "ഇടതുപക്ഷക്കാർ സഖ്ഖൂം മരം ഭക്ഷിച്ച ശേഷം എന്ത് ചെയ്യുന്നു?", options: ["ഉറങ്ങുന്നു", "ചുട്ടുതിളക്കുന്ന വെള്ളം കുടിക്കുന്നു", "കരയുന്നു", "പശ്ചാത്തപിക്കുന്നു"], answer: 1, explanation: "വാക്യം 54: ചുട്ടുതിളക്കുന്ന വെള്ളം കുടിക്കുന്നു." },
+  { type: "Type 9: അടുത്തത് എന്ത്", q: "മുൻഗാമികളുടെ വിവരണത്തിന് ശേഷം സൂറയിൽ അടുത്തതായി എന്താണ്?", options: ["ഇടതുപക്ഷക്കാർ", "വലതുപക്ഷക്കാർ", "ഉയിർത്തെഴുന്നേൽപ്പിന്റെ തെളിവുകൾ", "അവസാന വാക്യം"], answer: 1, explanation: "വാക്യങ്ങൾ 27–40: വലതുപക്ഷക്കാർ." },
+
+  // Type 10: Simple Comprehension
+  { type: "Type 10: ലളിത ധാരണ", q: "സ്വർഗത്തിൽ മുൻഗാമികൾ ഏത് വാക്കാണ് കേൾക്കുക?", options: ["'സമാധാനം, സമാധാനം'", "'അല്ലാഹുവിന് സ്തുതി'", "'അല്ലാഹു അക്ബർ'", "ഒരു ശബ്ദവും കേൾക്കില്ല"], answer: 0, explanation: "വാക്യം 26: 'സമാധാനം, സമാധാനം'." },
+  { type: "Type 10: ലളിത ധാരണ", q: "വലതുപക്ഷക്കാർ ഏത് തരത്തിലുള്ള ഇരിപ്പിടത്തിലാണ് ചാരിയിരിക്കുക?", options: ["സ്വർണ്ണ കട്ടിലുകൾ", "ഉയർന്ന മെത്തകൾ", "കല്ല് ഇരിപ്പിടങ്ങൾ", "മരം കസേരകൾ"], answer: 1, explanation: "വാക്യം 34: ഉയർന്ന മെത്തകൾ (فُرُشٍ مَّرْفُوعَةٍ)." },
+
+  // Additional: Word-Meaning (Arabic fill)
+  { type: "Type 5: പദാർത്ഥം", q: "'الْحِنثِ الْعَظِيمِ' എന്നതിന്റെ അർത്ഥം എന്താണ്?", options: ["മഹാപാപം", "മഹത്തായ പ്രതിഫലം", "മഹത്തായ തീ", "മഹത്തായ വൃക്ഷം"], answer: 0, explanation: "മഹാപാപം." },
+  { type: "Type 5: പദാർത്ഥം", q: "'يَحْمُومٍ' (കരിമ്പുക) എന്നത് ഏത് വാക്യത്തിലാണ്?", options: ["വാക്യം 41", "വാക്യം 42", "വാക്യം 43", "വാക്യം 44"], answer: 2, explanation: "വാക്യം 43: ظِلٍّ مِّن يَحْمُومٍ." },
+
+  // Additional: Sequence
+  { type: "Type 3: ക്രമം", q: "സൂറയുടെ അവസാന വാക്യം (96) ഏതാണ്?", options: ["فَسَبِّحْ بِاسْمِ رَبِّكَ الْعَظِيمِ", "هَٰذَا نُزُلُهُمْ يَوْمَ الدِّينِ", "وَأَمَّا إِن كَانَ مِنَ الْمُكَذِّبِينَ", "كَلَّا بَلْ لَا تُكْرِمُونَ الْيَتِيمَ"], answer: 0, explanation: "അവസാന വാക്യം: فَسَبِّحْ بِاسْمِ رَبِّكَ الْعَظِيمِ." },
+  { type: "Type 3: ക്രമം", q: "വാക്യം 7 ൽ എന്താണ് പറയുന്നത്?", options: ["മൂന്ന് വിഭാഗങ്ങൾ", "രണ്ട് വിഭാഗങ്ങൾ", "നാല് വിഭാഗങ്ങൾ", "ഒരു വിഭാഗം"], answer: 0, explanation: "وَكُنتُمْ أَزْوَٰجًا ثَلَٰثَةً." },
+
+  // Additional: Contrast
+  { type: "Type 4: വൈരുദ്ധ്യം", q: "വലതുപക്ഷക്കാർക്ക് 'നിരന്തരം ഒഴുകുന്ന വെള്ളം' ഉണ്ട്. ഇടതുപക്ഷക്കാർക്ക് എന്താണ്?", options: ["തണുത്ത വെള്ളം", "ചുട്ടുതിളക്കുന്ന വെള്ളം", "പാല്", "തേൻ"], answer: 1, explanation: "വാക്യം 42: ചുട്ടുതിളക്കുന്ന വെള്ളം (حَمِيمٍ)." },
+
+  // Additional: Rhetorical
+  { type: "Type 7: അലങ്കാരം", q: "'فَمَالِئُونَ مِنْهَا الْبُطُونَ' — ഇതിൽ 'ബുതൂൻ' (ഉദരങ്ങൾ) എന്നത് എന്തിനെ സൂചിപ്പിക്കുന്നു?", options: ["ആളുകളെ", "ഭക്ഷണത്തെ", "വൃക്ഷത്തെ", "വെള്ളത്തെ"], answer: 1, explanation: "ഉദരങ്ങൾ നിറയ്ക്കുന്നു — ഭക്ഷണത്തെ സൂചിപ്പിക്കുന്നു." }
+];
+
+let current = 0;
+let score = 0;
+let selected = null;
+let answered = false;
+
+const quizScreen = document.getElementById('quiz-screen');
+const resultScreen = document.getElementById('result-screen');
+const questionText = document.getElementById('question-text');
+const questionType = document.getElementById('question-type');
+const optionsDiv = document.getElementById('options');
+const feedbackDiv = document.getElementById('feedback');
+const nextBtn = document.getElementById('next-btn');
+const progressFill = document.getElementById('progress-fill');
+const questionCounter = document.getElementById('question-counter');
+
+function loadQuestion() {
+  answered = false;
+  selected = null;
+  feedbackDiv.className = 'feedback';
+  feedbackDiv.textContent = '';
+  nextBtn.disabled = true;
+  nextBtn.textContent = current === questions.length - 1 ? 'ഫലം കാണുക →' : 'അടുത്തത് →';
+
+  const q = questions[current];
+  questionCounter.textContent = `ചോദ്യം ${current + 1} / ${questions.length}`;
+  questionType.textContent = q.type;
+  questionText.textContent = q.q;
+  progressFill.style.width = ((current) / questions.length * 100) + '%';
+
+  optionsDiv.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => selectOption(i, btn);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function selectOption(i, btn) {
+  if (answered) return;
+  selected = i;
+  const q = questions[current];
+  const allBtns = optionsDiv.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  answered = true;
+  const isCorrect = i === q.answer;
+  if (isCorrect) {
+    score++;
+    btn.classList.add('correct');
+    feedbackDiv.className = 'feedback correct';
+    feedbackDiv.textContent = '✅ ശരി! ' + q.explanation;
+  } else {
+    btn.classList.add('wrong');
+    allBtns[q.answer].classList.add('correct');
+    feedbackDiv.className = 'feedback wrong';
+    feedbackDiv.textContent = '❌ തെറ്റ്. ശരിയായ ഉത്തരം: ' + q.options[q.answer] + '. ' + q.explanation;
+  }
+  allBtns.forEach(b => b.disabled = true);
+  nextBtn.disabled = false;
+}
+
+nextBtn.onclick = () => {
+  current++;
+  if (current < questions.length) {
+    loadQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  quizScreen.classList.add('hidden');
+  resultScreen.classList.add('active');
+  const total = questions.length;
+  const pct = Math.round(score / total * 100);
+  document.getElementById('final-score').textContent = `${score} / ${total}`;
+
+  const gradeEl = document.getElementById('grade-text');
+  if (pct >= 90) {
+    gradeEl.className = 'grade-text grade-excellent';
+    gradeEl.textContent = `മികച്ചത്! ${pct}% — സൂറയുടെ അറബി പാഠവും അർത്ഥവും നന്നായി പഠിച്ചിട്ടുണ്ട്.`;
+  } else if (pct >= 70) {
+    gradeEl.className = 'grade-text grade-good';
+    gradeEl.textContent = `നല്ലത്! ${pct}% — ചില വിശദാംശങ്ങൾ ഒന്നുകൂടി പഠിക്കുക.`;
+  } else if (pct >= 50) {
+    gradeEl.className = 'grade-text grade-average';
+    gradeEl.textContent = `ശരാശരി. ${pct}% — സൂറ വീണ്ടും വായിച്ച് പഠിക്കുക.`;
+  } else {
+    gradeEl.className = 'grade-text grade-poor';
+    gradeEl.textContent = `${pct}% — സൂറത്തുൽ വാഖിഅഃ വീണ്ടും പഠിക്കേണ്ടതുണ്ട്.`;
+  }
+}
+
+function restartQuiz() {
+  current = 0;
+  score = 0;
+  resultScreen.classList.remove('active');
+  quizScreen.classList.remove('hidden');
+  loadQuestion();
+}
+
+loadQuestion();
+</script>
+</body>
+</html>
